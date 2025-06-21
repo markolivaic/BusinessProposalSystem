@@ -1,0 +1,8 @@
+1
+admin
+$2b$12$YNaXf5vFI36nnm7Bgf9ATOyd9017bPWiVkxPjTwUMAsa3IlMeMiO6
+ADMIN
+2
+user
+$2b$12$/oOCqh131rUiDGMg5azhGeoJ6uL8rWdm1R6Rl.K0NzLmGebfMCq26
+REGULAR_USER

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="700.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.AuditLogController">
+   <children>
+       <fx:include source="menu.fxml" />
+      <GridPane prefHeight="600.0" prefWidth="700.0">
+        <columnConstraints>
+          <ColumnConstraints hgrow="NEVER" minWidth="10.0" prefWidth="175.0" />
+            <ColumnConstraints hgrow="NEVER" minWidth="10.0" prefWidth="175.0" />
+            <ColumnConstraints hgrow="NEVER" minWidth="10.0" prefWidth="175.0" />
+          <ColumnConstraints hgrow="NEVER" minWidth="10.0" prefWidth="175.0" />
+        </columnConstraints>
+        <rowConstraints>
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+        </rowConstraints>
+         <children>
+            <Label text="Audit Log" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.halignment="CENTER">
+               <font>
+                  <Font name="System Bold" size="24.0" />
+               </font>
+            </Label>
+            <Label text="Filter by Action:" GridPane.halignment="RIGHT" GridPane.rowIndex="1">
+               <font>
+                  <Font size="14.0" />
+               </font>
+               <GridPane.margin>
+                  <Insets right="12.0" />
+               </GridPane.margin></Label>
+            <Label text="Filter by Date:" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowIndex="1">
+               <font>
+                  <Font size="14.0" />
+               </font>
+               <GridPane.margin>
+                  <Insets right="12.0" />
+               </GridPane.margin></Label>
+            <TableView prefHeight="145.0" prefWidth="706.0" GridPane.columnSpan="4" GridPane.rowIndex="2" GridPane.rowSpan="2" fx:id="auditLogTable">
+              <columns>
+                  <TableColumn fx:id="actionColumn" prefWidth="100" text="Action" />
+                  <TableColumn fx:id="entityColumn" prefWidth="100" text="Entity" />
+                  <TableColumn fx:id="oldValueColumn" prefWidth="111.20001220703125" text="Old Value" />
+                  <TableColumn fx:id="newValueColumn" prefWidth="121.5999755859375" text="New Value" />
+                  <TableColumn fx:id="roleColumn" prefWidth="88.00003051757812" text="User Role" />
+                  <TableColumn fx:id="timestampColumn" prefWidth="179.99993896484375" text="Timestamp" />
+              </columns>
+            </TableView>
+            <ComboBox prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="1" fx:id="actionFilterComboBox">
+               <GridPane.margin>
+                  <Insets left="12.0" right="12.0" />
+               </GridPane.margin></ComboBox>
+            <DatePicker GridPane.columnIndex="3" GridPane.rowIndex="1" fx:id="dateFilterPicker">
+               <GridPane.margin>
+                  <Insets left="12.0" right="12.0" />
+               </GridPane.margin></DatePicker>
+         </children>
+      </GridPane>
+   </children>
+</VBox>

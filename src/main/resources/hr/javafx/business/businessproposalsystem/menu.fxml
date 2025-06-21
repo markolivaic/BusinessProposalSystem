@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.layout.Region?>
+
+<MenuBar prefHeight="26.0" prefWidth="700.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.MenuController">
+  <menus>
+    <Menu mnemonicParsing="false" text="Proposals">
+      <items>
+        <MenuItem mnemonicParsing="false" onAction="#showProposalSearchScreen" text="Proposal search" />
+            <MenuItem mnemonicParsing="false" onAction="#showProposalEditScreen" text="Proposal edit" />
+      </items>
+    </Menu>
+    <Menu mnemonicParsing="false" text="Clients">
+      <items>
+        <MenuItem mnemonicParsing="false" onAction="#showClientSearchScreen" text="Clients search" />
+            <MenuItem mnemonicParsing="false" onAction="#showClientEditScreen" text="Clients edit" />
+      </items>
+    </Menu>
+    <Menu mnemonicParsing="false" text="Audit log">
+      <items>
+        <MenuItem mnemonicParsing="false" onAction="#showAuditLogScreen" text="Audit log" />
+      </items>
+    </Menu>
+      <Menu mnemonicParsing="false" text="Log out">
+        <items>
+          <MenuItem mnemonicParsing="false" onAction="#showLogInScreen" text="Log out" />
+        </items>
+         <graphic>
+            <Region prefHeight="22.0" prefWidth="427.0" />
+         </graphic>
+      </Menu>
+  </menus>
+</MenuBar>
