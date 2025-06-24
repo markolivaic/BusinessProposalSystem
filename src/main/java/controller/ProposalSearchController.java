@@ -84,7 +84,7 @@ public class ProposalSearchController {
                 log.error("Input error: {}", e.getMessage(), e);
             }
             return new SimpleStringProperty(client != null ? client.getName() : "Unknown Client");
-        });
+        }); 
 
         statusComboBox.setItems(FXCollections.observableArrayList("Pending", "Approved", "Rejected"));
 

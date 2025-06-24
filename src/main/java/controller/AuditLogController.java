@@ -1,5 +1,6 @@
 package controller;
 
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -10,7 +11,6 @@ import repository.AuditLogRepository;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -54,14 +54,15 @@ public class AuditLogController {
      *
      */
     public void initialize() {
-        actionColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().action()));
-        entityColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().entityName()));
-        oldValueColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().oldValue()));
-        newValueColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().newValue()));
-        roleColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().userRole()));
-        timestampColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().timestamp()));
+        actionColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().action()));
+        entityColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().entityName()));
+        oldValueColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().oldValue()));
+        newValueColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().newValue()));
+        roleColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().userRole()));
 
-        actionFilterComboBox.setItems(FXCollections.observableArrayList("ALL", "ADD", "UPDATE", "DELETE"));
+        timestampColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().timestamp()));
+
+        actionFilterComboBox.setItems(FXCollections.observableArrayList("ALL", "ADD", "UPDATE", "DELETE", "UPDATE STATUS"));
         actionFilterComboBox.setValue("ALL");
 
         loadAuditLogs();
@@ -71,7 +72,7 @@ public class AuditLogController {
     }
 
     /**
-     * Loads the history logs to the table
+     * Loads the history logs from the file in a background thread.
      *
      */
     private void loadAuditLogs() {
@@ -91,17 +92,22 @@ public class AuditLogController {
     }
 
     /**
-     * Filters the history logs
+     * Filters the history logs based on user selection.
      *
      */
     private void filterAuditLogs() {
         String selectedAction = actionFilterComboBox.getValue();
         LocalDate selectedDate = dateFilterPicker.getValue();
 
-        List<AuditLog> filteredLogs = new ArrayList<>(auditLogList.stream()
-                .filter(log -> "ALL".equals(selectedAction) || log.action().equals(selectedAction))
-                .filter(log -> selectedDate == null || log.timestamp().startsWith(selectedDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))))
-                .toList());
+        List<AuditLog> filteredLogs = auditLogList.stream()
+                .filter(log -> "ALL".equalsIgnoreCase(selectedAction) || log.action().equalsIgnoreCase(selectedAction))
+                .filter(log -> {
+                    if (selectedDate == null) {
+                        return true;
+                    }
+                    return log.timestamp().startsWith(selectedDate.format(DateTimeFormatter.ISO_LOCAL_DATE));
+                })
+                .toList();
 
         auditLogTable.setItems(FXCollections.observableArrayList(filteredLogs));
     }
