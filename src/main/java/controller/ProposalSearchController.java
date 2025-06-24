@@ -195,7 +195,6 @@ public class ProposalSearchController {
             showError("No Proposal Selected", "Please select a proposal.");
             return;
         }
-
         Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
         confirmation.setTitle("Confirm " + newStatus + " Action");
         confirmation.setHeaderText("Are you sure you want to " + newStatus.toString().toLowerCase() + " this proposal?");
@@ -205,8 +204,12 @@ public class ProposalSearchController {
                 + "Current Status: " + selectedProposal.getStatus());
 
         if (confirmation.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
+            if (newStatus == enums.ProposalStatus.APPROVED) {
+                selectedProposal.approveProposal();
+            } else if (newStatus == enums.ProposalStatus.REJECTED) {
+                selectedProposal.rejectProposal();
+            }
             proposalRepository.updateStatus(selectedProposal.getId(), newStatus);
-            selectedProposal.setStatus(newStatus);
             proposalTableView.refresh();
 
             Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
