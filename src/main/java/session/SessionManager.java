@@ -1,21 +1,25 @@
 package session;
 
 /**
- * The SessionManager class handles user session management.
- * It keeps track of the currently logged-in user and their role.
+ * Upravitelj sesije (SessionManager) je statička klasa koja prati stanje prijave korisnika.
+ * Pohranjuje ID prijavljenog korisnika i njegovu rolu (admin ili ne).
+ * Privatni konstruktor sprječava instanciranje ove pomoćne klase.
  */
 public class SessionManager {
     private static Long loggedInUserId;
     private static boolean isAdmin;
 
+    /**
+     * Privatni konstruktor kako bi se spriječilo stvaranje instanci.
+     */
     private SessionManager() {
     }
 
     /**
-     * Logs in a user by setting their user ID and role.
+     * Prijavljuje korisnika postavljanjem njegovog ID-ja i statusa administratora.
      *
-     * @param userId The ID of the logged-in user.
-     * @param isAdminStatus True if the user is an admin, false otherwise.
+     * @param userId ID korisnika koji se prijavljuje.
+     * @param isAdminStatus {@code true} ako je korisnik administrator, inače {@code false}.
      */
     public static void login(Long userId, boolean isAdminStatus) {
         loggedInUserId = userId;
@@ -23,34 +27,34 @@ public class SessionManager {
     }
 
     /**
-     * Retrieves the ID of the logged-in user.
+     * Dohvaća ID trenutno prijavljenog korisnika.
      *
-     * @return The logged-in user ID.
+     * @return ID prijavljenog korisnika, ili {@code null} ako nitko nije prijavljen.
      */
     public static Long getLoggedInUserId() {
         return loggedInUserId;
     }
 
     /**
-     * Checks if the logged-in user is an admin.
+     * Provjerava ima li trenutno prijavljeni korisnik administratorska prava.
      *
-     * @return True if the user is an admin, false otherwise.
+     * @return {@code true} ako je korisnik administrator, inače {@code false}.
      */
     public static boolean isAdmin() {
         return isAdmin;
     }
 
     /**
-     * Checks if there is a user currently logged in.
+     * Provjerava je li korisnik trenutno prijavljen.
      *
-     * @return True if a user is logged in, false otherwise.
+     * @return {@code true} ako je korisnik prijavljen, inače {@code false}.
      */
     public static boolean isUserLoggedIn() {
         return loggedInUserId != null;
     }
 
     /**
-     * Logs out the current user by resetting session values.
+     * Odjavljuje trenutnog korisnika poništavanjem podataka o sesiji.
      */
     public static void logout() {
         loggedInUserId = null;

@@ -13,8 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Controller for Client search screen
- *
+ * Kontroler za ekran pretrage klijenata.
+ * Omogućuje filtriranje i prikaz klijenata iz baze podataka.
  */
 public class ClientSearchController {
 
@@ -48,23 +48,26 @@ public class ClientSearchController {
     private final AbstractRepository<Client> clientRepository = new ClientDatabaseRepository<>();
 
     /**
-     * Initializes all the necessary stuff
-     *
+     * Inicijalizira kontroler, postavljajući tvornice vrijednosti za stupce tablice
+     * kako bi se podaci o klijentima ispravno prikazali.
      */
     public void initialize() {
         clientNameTableColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getName()));
         clientEmailTableColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getEmail()));
         clientPhoneTableColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getPhone()));
         clientCompanyTableColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getCompany()));
-
     }
 
+    /**
+     * Filtrira klijente na temelju unesenih vrijednosti u tekstualna polja.
+     * Dohvaća sve klijente, a zatim primjenjuje filtere za ime, email, telefon i tvrtku.
+     * Ažurira TableView s filtriranim rezultatima.
+     */
     public void filterClients(){
         List<Client> clientList;
         clientList = clientRepository.findAll();
 
         String clientName = clientNameTextField.getText();
-
         if (!clientName.isEmpty()) {
             clientList = new ArrayList<>(clientList.stream()
                     .filter(client -> client.getName().toLowerCase().contains(clientName.toLowerCase()))
@@ -72,7 +75,6 @@ public class ClientSearchController {
         }
 
         String clientEmail = clientEmailTextField.getText();
-
         if (!clientEmail.isEmpty()) {
             clientList = new ArrayList<>(clientList.stream()
                     .filter(client -> client.getEmail().toLowerCase().contains(clientEmail.toLowerCase()))
@@ -80,7 +82,6 @@ public class ClientSearchController {
         }
 
         String clientPhone = clientPhoneTextField.getText();
-
         if (!clientPhone.isEmpty()) {
             clientList = new ArrayList<>(clientList.stream()
                     .filter(client -> client.getPhone().toLowerCase().contains(clientPhone.toLowerCase()))
@@ -88,19 +89,13 @@ public class ClientSearchController {
         }
 
         String clientCompany = clientCompanyTextField.getText();
-
         if (!clientCompany.isEmpty()) {
             clientList = new ArrayList<>(clientList.stream()
                     .filter(client -> client.getCompany().toLowerCase().contains(clientCompany.toLowerCase()))
                     .toList());
         }
 
-
-        ObservableList<Client> categoryObservableList =
-                FXCollections.observableList(clientList);
-
+        ObservableList<Client> categoryObservableList = FXCollections.observableList(clientList);
         clientTableView.setItems(categoryObservableList);
-
     }
-
 }

@@ -8,8 +8,8 @@ import model.Client;
 import repository.ClientDatabaseRepository;
 
 /**
- * Controller for Edit client screen
- *
+ * Kontroler za ekran dodavanja novog klijenta.
+ * Upravlja unosom podataka, validacijom i spremanjem novog klijenta u bazu.
  */
 public class EditClientController {
 
@@ -25,7 +25,11 @@ public class EditClientController {
     @FXML
     private TextField newCompanyTextField;
 
-
+    /**
+     * Metoda koja se poziva za dodavanje novog klijenta.
+     * Prikuplja podatke iz tekstualnih polja, vrši validaciju,
+     * traži potvrdu od korisnika i na kraju sprema klijenta.
+     */
     public void addNewClient() {
         StringBuilder errorMessages = new StringBuilder();
 
@@ -80,11 +84,18 @@ public class EditClientController {
                         + "Company: " + company);
                 successAlert.showAndWait();
 
-                newClientTextField.clear();
-                newEmailTextField.clear();
-                newPhoneTextField.clear();
-                newCompanyTextField.clear();
+                clearFields();
             }
         }
+    }
+
+    /**
+     * Pomoćna metoda za čišćenje svih tekstualnih polja nakon uspješnog unosa.
+     */
+    private void clearFields() {
+        newClientTextField.clear();
+        newEmailTextField.clear();
+        newPhoneTextField.clear();
+        newCompanyTextField.clear();
     }
 }

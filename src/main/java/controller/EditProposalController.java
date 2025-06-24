@@ -12,9 +12,10 @@ import repository.ClientDatabaseRepository;
 import repository.ProposalDatabaseRepository;
 
 import java.util.List;
+
 /**
- * Controller for Edit proposal screen
- *
+ * Kontroler za ekran dodavanja i uređivanja prijedloga.
+ * Upravlja unosom podataka, validacijom te spremanjem (novog) ili ažuriranjem (postojećeg) prijedloga.
  */
 public class EditProposalController {
 
@@ -33,19 +34,26 @@ public class EditProposalController {
     private Proposal currentProposal;
     private Long currentUserId;
 
+    /**
+     * Postavlja ID trenutno prijavljenog korisnika.
+     * @param userId ID korisnika.
+     */
     public void setCurrentUser(Long userId) {
         this.currentUserId = userId;
     }
 
     /**
-     * Initializes all the necessary stuff
-     *
+     * Inicijalizira kontroler. Popunjava ComboBox s klijentima iz baze podataka.
      */
     public void initialize() {
         List<Client> clients = clientRepository.findAll();
         newClientComboBox.getItems().addAll(clients);
     }
 
+    /**
+     * Učitava podatke postojećeg prijedloga u polja za uređivanje.
+     * @param proposal Prijedlog koji se uređuje.
+     */
     public void loadProposalForEditing(Proposal proposal) {
         this.currentProposal = proposal;
 
@@ -60,6 +68,9 @@ public class EditProposalController {
         }
     }
 
+    /**
+     * Postavlja ekran u mod za unos novog prijedloga, čisteći sva polja.
+     */
     public void loadNewProposalMode() {
         this.currentProposal = null;
         newProposalTextField.clear();
@@ -67,17 +78,17 @@ public class EditProposalController {
         newClientComboBox.getSelectionModel().clearSelection();
     }
 
+    /**
+     * Sprema promjene (ili novi prijedlog) nakon validacije i potvrde korisnika.
+     * Ako je {@code currentProposal} null, kreira se novi prijedlog. Inače, ažurira se postojeći.
+     */
     public void saveProposal() {
         String title = newProposalTextField.getText();
         String description = newDescriptionTextField.getText();
         Client selectedClient = newClientComboBox.getValue();
 
         if (title.isEmpty() || description.isEmpty() || selectedClient == null) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setHeaderText("Proposal not saved");
-            alert.setContentText("All fields must be filled!");
-            alert.showAndWait();
+            showAlert(Alert.AlertType.ERROR, "Error", "Proposal not saved", "All fields must be filled!");
             return;
         }
 
@@ -103,14 +114,30 @@ public class EditProposalController {
                 proposalRepository.update(currentProposal);
             }
 
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Success");
-            alert.setHeaderText("Proposal Saved!");
-            alert.setContentText("The proposal has been successfully saved.");
-            alert.showAndWait();
-
-            ((Stage) newProposalTextField.getScene().getWindow()).close();
+            showAlert(Alert.AlertType.INFORMATION, "Success", "Proposal Saved!", "The proposal has been successfully saved.");
+            closeWindow();
         }
     }
 
+    /**
+     * Zatvara prozor za uređivanje prijedloga.
+     */
+    private void closeWindow() {
+        ((Stage) newProposalTextField.getScene().getWindow()).close();
+    }
+
+    /**
+     * Pomoćna metoda za prikazivanje dijaloga.
+     * @param type Tip alerta.
+     * @param title Naslov prozora.
+     * @param header Tekst zaglavlja.
+     * @param content Sadržaj poruke.
+     */
+    private void showAlert(Alert.AlertType type, String title, String header, String content) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(header);
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
 }

@@ -19,11 +19,11 @@ import java.util.List;
 
 
 /**
- * Repository class for handling database operations for Proposal entities.
- * This class provides methods to find, save, update, and delete proposals
- * from the H2 database. It also handles logging of all major operations.
+ * Repozitorij za upravljanje podacima o prijedlozima ({@link Proposal}) u bazi podataka.
+ * Pruža metode za pronalaženje, spremanje, ažuriranje i brisanje prijedloga.
+ * Također, asinkrono logira sve promjene podataka u audit log.
  *
- * @param <T> A type that extends Proposal.
+ * @param <T> Tip prijedloga, mora nasljeđivati {@link Proposal}.
  */
 public class ProposalDatabaseRepository<T extends Proposal> extends AbstractRepository<T> {
 
@@ -35,12 +35,7 @@ public class ProposalDatabaseRepository<T extends Proposal> extends AbstractRepo
     private static final String ADMIN = "Admin";
 
     /**
-     * Finds a single Proposal entity by its unique identifier.
-     *
-     * @param id The ID of the proposal to find.
-     * @return The found Proposal object.
-     * @throws EmptyRepositoryResultException if no proposal with the given ID is found.
-     * @throws RepositoryAccessException if a database access error occurs.
+     * {@inheritDoc}
      */
     @Override
     public T findById(Long id) throws EmptyRepositoryResultException, SQLException {
@@ -66,10 +61,7 @@ public class ProposalDatabaseRepository<T extends Proposal> extends AbstractRepo
     }
 
     /**
-     * Retrieves all Proposal entities from the database.
-     *
-     * @return A list of all proposals.
-     * @throws RepositoryAccessException if a database access error occurs.
+     * {@inheritDoc}
      */
     @Override
     public List<T> findAll() throws RepositoryAccessException {
@@ -92,18 +84,14 @@ public class ProposalDatabaseRepository<T extends Proposal> extends AbstractRepo
     }
 
     /**
-     * Saves a list of Proposal entities to the database using a batch operation.
-     * This method is not directly used for single saves but supports bulk inserts.
-     *
-     * @param entities The list of proposals to save.
-     * @throws RepositoryAccessException if the save operation fails.
+     * {@inheritDoc}
      */
     @Override
-    public void save(List<T> entities) throws RepositoryAccessException {
+    public void save(List<T> entities) throws RepositoryAccessException, SQLException {
         String sql = "INSERT INTO proposals (title, description, status, client_id, user_id) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection connection = new DatabaseConnection().connectToDatabase();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+             PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             for (T entity : entities) {
                 statement.setString(1, entity.getTitle());
@@ -125,9 +113,8 @@ public class ProposalDatabaseRepository<T extends Proposal> extends AbstractRepo
     }
 
     /**
-     * Retrieves the next available ID for an audit log entry by reading the log file.
-     *
-     * @return The next sequential ID for the audit log.
+     * Dohvaća sljedeći dostupan ID za zapis u audit logu.
+     * @return Sljedeći ID.
      */
     private Long getNextAuditLogId() {
         List<AuditLog> logs = new AuditLogRepository().readAuditLogs();
@@ -135,16 +122,19 @@ public class ProposalDatabaseRepository<T extends Proposal> extends AbstractRepo
     }
 
     /**
-     * Saves a single Proposal entity to the database and logs the action.
-     * The logging operation is performed asynchronously in a new thread.
-     *
-     * @param entity The proposal to save.
+     * Sprema jedan prijedlog u bazu podataka i asinkrono zapisuje promjenu u audit log.
+     * @param entity Prijedlog koji se sprema.
+     * @throws RepositoryAccessException ako spremanje u bazu ne uspije.
      */
     @Override
     public void save(T entity) {
         List<T> proposals = new ArrayList<>();
         proposals.add(entity);
-        save(proposals);
+        try {
+            save(proposals);
+        } catch (SQLException e) {
+            throw new RepositoryAccessException(e);
+        }
 
         AuditLog logEntry = new AuditLog(
                 getNextAuditLogId(),
@@ -153,7 +143,7 @@ public class ProposalDatabaseRepository<T extends Proposal> extends AbstractRepo
                 "ADD",
                 PROPOSAL,
                 "N/A",
-                entity.toString(),
+                entity.getTitle(), // Logira naslov umjesto statusa
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_PATTERN))
         );
 
@@ -162,11 +152,11 @@ public class ProposalDatabaseRepository<T extends Proposal> extends AbstractRepo
     }
 
     /**
-     * Updates an existing proposal's title, description, and client ID in the database.
-     * It logs only the fields that were actually changed, showing real names for clients.
+     * Ažurira postojeći prijedlog (naslov, opis, klijent) u bazi podataka.
+     * Ako su podaci promijenjeni, asinkrono se zapisuje promjena u audit log.
      *
-     * @param proposal The proposal object with updated information.
-     * @throws RepositoryAccessException if the update fails or the proposal is not found.
+     * @param proposal Prijedlog s ažuriranim informacijama.
+     * @throws RepositoryAccessException ako ažuriranje ne uspije.
      */
     public void update(Proposal proposal) {
         String query = "UPDATE proposals SET title = ?, description = ?, client_id = ? WHERE id = ?";
@@ -217,7 +207,6 @@ public class ProposalDatabaseRepository<T extends Proposal> extends AbstractRepo
                 return;
             }
 
-            // Uklanjanje zadnjeg zareza i razmaka za čist ispis
             String finalOldValue = oldValueBuilder.substring(0, oldValueBuilder.length() - 2);
             String finalNewValue = newValueBuilder.substring(0, newValueBuilder.length() - 2);
 
@@ -242,11 +231,11 @@ public class ProposalDatabaseRepository<T extends Proposal> extends AbstractRepo
     }
 
     /**
-     * A helper method to extract a Proposal object from a database ResultSet.
+     * Pomoćna metoda za kreiranje {@link Proposal} objekta iz {@link ResultSet}-a.
      *
-     * @param resultSet The ResultSet from a database query.
-     * @return A fully populated Proposal object.
-     * @throws SQLException if a column is not found or a data type mismatch occurs.
+     * @param resultSet ResultSet iz kojeg se čitaju podaci.
+     * @return Kreirani Proposal objekt.
+     * @throws SQLException ako dođe do greške pri čitanju stupaca.
      */
     private static Proposal extractProposalFromResultSet(ResultSet resultSet) throws SQLException {
         Long id = resultSet.getLong("id");
@@ -266,10 +255,9 @@ public class ProposalDatabaseRepository<T extends Proposal> extends AbstractRepo
     }
 
     /**
-     * Calculates the next available ID for a new proposal.
-     * It queries the database for the current maximum ID and increments it.
-     *
-     * @return The next ID to be used for a new proposal.
+     * Izračunava i vraća sljedeći slobodan ID za novi prijedlog.
+     * @return Sljedeći ID za novi prijedlog.
+     * @throws RepositoryAccessException ako dođe do greške pri dohvatu ID-ja.
      */
     public Long getNextProposalId() {
         String query = "SELECT MAX(id) FROM PROPOSALS";
@@ -287,16 +275,16 @@ public class ProposalDatabaseRepository<T extends Proposal> extends AbstractRepo
             throw new RepositoryAccessException("Error fetching latest proposal ID", e);
         }
 
-        return 1L; // Default to 1 if the table is empty
+        return 1L;
     }
 
     /**
-     * Deletes a proposal from the database by its ID and logs the action.
+     * Briše prijedlog iz baze podataka prema zadanom ID-ju i asinkrono logira akciju.
      *
-     * @param proposalId The ID of the proposal to delete.
-     * @throws SQLException if a database error occurs.
-     * @throws EmptyRepositoryResultException if the proposal to delete is not found.
-     * @throws RepositoryAccessException if the deletion fails.
+     * @param proposalId ID prijedloga koji se briše.
+     * @throws SQLException ako dođe do greške pri pristupu bazi.
+     * @throws EmptyRepositoryResultException ako prijedlog za brisanje nije pronađen.
+     * @throws RepositoryAccessException ako brisanje ne uspije.
      */
     public void deleteProposal(Long proposalId) throws SQLException, EmptyRepositoryResultException {
         Proposal oldProposal = findById(proposalId);
@@ -318,7 +306,7 @@ public class ProposalDatabaseRepository<T extends Proposal> extends AbstractRepo
                     SessionManager.isAdmin() ? ADMIN : "User",
                     "DELETE",
                     PROPOSAL,
-                    oldProposal.toString(),
+                    oldProposal.getTitle(), // Logira naslov
                     "Deleted",
                     LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_PATTERN))
             );
@@ -333,14 +321,13 @@ public class ProposalDatabaseRepository<T extends Proposal> extends AbstractRepo
     }
 
     /**
-     * Updates the status of a specific proposal (e.g., to APPROVED or REJECTED)
-     * and logs this specific change.
+     * Ažurira status određenog prijedloga (npr. u APPROVED ili REJECTED) i asinkrono logira promjenu.
      *
-     * @param proposalId The ID of the proposal to update.
-     * @param newStatus The new status for the proposal.
-     * @throws SQLException if a database error occurs.
-     * @throws EmptyRepositoryResultException if the proposal to update is not found.
-     * @throws RepositoryAccessException if the update fails.
+     * @param proposalId ID prijedloga čiji se status mijenja.
+     * @param newStatus Novi status prijedloga.
+     * @throws SQLException ako dođe do greške pri pristupu bazi.
+     * @throws EmptyRepositoryResultException ako prijedlog za ažuriranje nije pronađen.
+     * @throws RepositoryAccessException ako ažuriranje ne uspije.
      */
     public void updateStatus(Long proposalId, enums.ProposalStatus newStatus) throws SQLException, EmptyRepositoryResultException {
         Proposal oldProposal = findById(proposalId);
@@ -357,8 +344,6 @@ public class ProposalDatabaseRepository<T extends Proposal> extends AbstractRepo
                 throw new RepositoryAccessException("No rows updated. Proposal ID might be incorrect.");
             }
 
-            Proposal updatedProposal = findById(proposalId);
-
             AuditLog logEntry = new AuditLog(
                     getNextAuditLogId(),
                     SessionManager.getLoggedInUserId(),
@@ -366,14 +351,14 @@ public class ProposalDatabaseRepository<T extends Proposal> extends AbstractRepo
                     "UPDATE STATUS",
                     PROPOSAL,
                     oldProposal.getStatus().toString(),
-                    updatedProposal.getStatus().toString(),
+                    newStatus.toString(),
                     LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_PATTERN))
             );
 
             AuditLogRepository auditLogRepository = new AuditLogRepository();
             new Thread(() -> auditLogRepository.logChange(logEntry)).start();
 
-        } catch (SQLException | EmptyRepositoryResultException e) {
+        } catch (SQLException e) {
             log.error(DATABASE_ERROR, e.getMessage(), e);
             throw new RepositoryAccessException(e);
         }

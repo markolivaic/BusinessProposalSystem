@@ -12,4 +12,7 @@ module hr.javafx.business.businessproposalsystem {
     exports hr.javafx.business.businessproposalsystem;
     exports controller;
     opens controller to javafx.fxml;
+    exports model;
+    exports enums;
+    exports exception;
 }

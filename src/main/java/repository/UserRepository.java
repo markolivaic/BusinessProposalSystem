@@ -19,6 +19,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+/**
+ * Repozitorij za upravljanje korisničkim podacima.
+ * Čita podatke iz tekstualne datoteke za autentifikaciju i inicijalno puni bazu podataka.
+ */
 public class UserRepository {
 
     private static final String USERS_FILE_PATH = "dat/users.txt";
@@ -26,6 +30,15 @@ public class UserRepository {
     private static final int NUMBER_OF_ROWS_PER_USER = 4;
     private static final Logger log = LoggerFactory.getLogger(UserRepository.class);
 
+    /**
+     * Autentificira korisnika provjerom korisničkog imena i lozinke.
+     * Čita podatke iz tekstualne datoteke i uspoređuje hashiranu lozinku.
+     *
+     * @param username Korisničko ime za provjeru.
+     * @param password Lozinka za provjeru.
+     * @return {@link Pair} koji sadrži ID korisnika i boolean vrijednost (isAdmin), ili {@code null} ako autentifikacija ne uspije.
+     * @throws RepositoryAccessException ako dođe do greške pri čitanju datoteke.
+     */
     public Pair<Long, Boolean> authenticateUser(String username, String password) {
         try (Stream<String> stream = Files.lines(Path.of(USERS_FILE_PATH))) {
             List<String> fileRows = new ArrayList<>(stream.toList());
@@ -55,7 +68,13 @@ public class UserRepository {
         return null;
     }
 
-
+    /**
+     * Pronalazi korisnika po korisničkom imenu.
+     *
+     * @param username Korisničko ime koje se traži.
+     * @return {@link Pair} koji sadrži ID korisnika i boolean vrijednost (isAdmin), ili {@code null} ako korisnik nije pronađen.
+     * @throws RepositoryAccessException ako dođe do greške pri čitanju datoteke.
+     */
     public Pair<Long, Boolean> findByUsername(String username) {
         try {
             List<String> fileRows = Files.readAllLines(Path.of(USERS_FILE_PATH));
@@ -76,6 +95,13 @@ public class UserRepository {
         return null;
     }
 
+    /**
+     * Uvozi korisnike iz tekstualne datoteke u bazu podataka.
+     * Ova metoda se poziva pri pokretanju aplikacije kako bi osigurala da su korisnici prisutni u bazi.
+     * Ako korisnik već postoji u bazi, preskače ga.
+     *
+     * @throws RepositoryAccessException ako dođe do greške pri čitanju datoteke ili pristupu bazi.
+     */
     public void importUsersFromFile() {
         try {
             List<String> fileRows = Files.readAllLines(Path.of(USERS_FILE_PATH));
@@ -98,6 +124,13 @@ public class UserRepository {
         }
     }
 
+    /**
+     * Sprema korisnika u bazu podataka.
+     * Prije spremanja provjerava postoji li već korisnik s istim korisničkim imenom.
+     *
+     * @param user Korisnik koji se sprema.
+     * @throws RepositoryAccessException ako dođe do greške pri pristupu bazi.
+     */
     public void save(User user) {
         try (Connection connection = new DatabaseConnection().connectToDatabase();
              PreparedStatement checkStmt = connection.prepareStatement("SELECT id FROM USERS WHERE username = ?");
@@ -118,7 +151,7 @@ public class UserRepository {
 
             insertStmt.executeUpdate();
         } catch (SQLException e) {
-            log.error(IO_ERROR, e.getMessage(), e);
+            log.error("Database error while saving user: {}", e.getMessage(), e);
             throw new RepositoryAccessException(e);
         }
     }

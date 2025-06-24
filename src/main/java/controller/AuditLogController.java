@@ -14,8 +14,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
- * Controller for AuditLog screen
- *
+ * Kontroler za ekran prikaza revizijskog traga (Audit Log).
+ * Upravlja učitavanjem, prikazom i filtriranjem zapisa o promjenama u sustavu.
  */
 public class AuditLogController {
 
@@ -50,8 +50,9 @@ public class AuditLogController {
     private final ObservableList<AuditLog> auditLogList = FXCollections.observableArrayList();
 
     /**
-     * Initializes all the necessary stuff
-     *
+     * Inicijalizira kontroler nakon što je FXML datoteka učitana.
+     * Postavlja tvornice vrijednosti za stupce tablice, popunjava filtere
+     * i pokreće učitavanje podataka.
      */
     public void initialize() {
         actionColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().action()));
@@ -59,7 +60,6 @@ public class AuditLogController {
         oldValueColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().oldValue()));
         newValueColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().newValue()));
         roleColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().userRole()));
-
         timestampColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().timestamp()));
 
         actionFilterComboBox.setItems(FXCollections.observableArrayList("ALL", "ADD", "UPDATE", "DELETE", "UPDATE STATUS"));
@@ -72,8 +72,9 @@ public class AuditLogController {
     }
 
     /**
-     * Loads the history logs from the file in a background thread.
-     *
+     * Učitava zapise iz audit log datoteke koristeći pozadinsku nit (Task).
+     * Time se sprječava blokiranje korisničkog sučelja (UI) tijekom I/O operacije.
+     * Po završetku, popunjava tablicu s učitanim podacima.
      */
     private void loadAuditLogs() {
         Task<List<AuditLog>> loadTask = new Task<>() {
@@ -92,8 +93,8 @@ public class AuditLogController {
     }
 
     /**
-     * Filters the history logs based on user selection.
-     *
+     * Filtrira prikazane zapise u tablici na temelju odabranih vrijednosti
+     * u ComboBox-u za akciju i DatePicker-u za datum.
      */
     private void filterAuditLogs() {
         String selectedAction = actionFilterComboBox.getValue();

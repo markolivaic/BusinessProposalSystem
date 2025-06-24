@@ -15,8 +15,9 @@ import javafx.scene.Scene;
 import java.io.IOException;
 
 /**
- * Controller for Login screen
- *
+ * Kontroler za ekran za prijavu korisnika.
+ * Upravlja unosom korisničkog imena i lozinke, autentifikacijom
+ * i preusmjeravanjem na nadzornu ploču.
  */
 public class LoginController {
 
@@ -33,9 +34,13 @@ public class LoginController {
     private Label wrongPasswordLabel;
 
     private final UserRepository userRepository = new UserRepository();
-
     private static final Logger log = LoggerFactory.getLogger(LoginController.class);
 
+    /**
+     * Obrađuje pokušaj prijave korisnika.
+     * Provjerava unesene podatke, poziva metodu za autentifikaciju
+     * i, ako je uspješna, preusmjerava na nadzornu ploču.
+     */
     public void handleLogin() {
         String username = usernameTextField.getText().trim();
         String password = passwordTextField.getText().trim();
@@ -50,7 +55,6 @@ public class LoginController {
         if (authenticatedUser != null) {
             Long userId = authenticatedUser.getKey();
             boolean isAdmin = authenticatedUser.getValue();
-
             SessionManager.login(userId, isAdmin);
             showDashboardScreen();
         } else {
@@ -58,6 +62,10 @@ public class LoginController {
         }
     }
 
+    /**
+     * Prikazuje odgovarajuću poruku o grešci ako prijava nije uspjela.
+     * @param username Uneseno korisničko ime, za provjeru postoji li.
+     */
     private void showLoginError(String username) {
         wrongUsernameLabel.setVisible(false);
         wrongPasswordLabel.setVisible(false);
@@ -71,6 +79,9 @@ public class LoginController {
         }
     }
 
+    /**
+     * Prikazuje nadzornu ploču nakon uspješne prijave.
+     */
     private void showDashboardScreen() {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(BusinessProposalApplication.class.getResource("dashboardScreen.fxml"));
@@ -84,6 +95,11 @@ public class LoginController {
         }
     }
 
+    /**
+     * Prikazuje dijalog s porukom o grešci.
+     * @param title Naslov prozora.
+     * @param message Poruka koja se prikazuje.
+     */
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);

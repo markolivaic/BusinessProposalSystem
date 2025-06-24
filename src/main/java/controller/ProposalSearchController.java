@@ -20,10 +20,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
- * Controller for Proposal search screen
- *
+ * Kontroler za ekran pretrage poslovnih prijedloga.
+ * Omogućuje filtriranje, prikaz, uređivanje, brisanje, odobravanje i odbijanje prijedloga.
  */
 public class ProposalSearchController {
 
@@ -60,20 +59,16 @@ public class ProposalSearchController {
     private final ProposalDatabaseRepository<Proposal> proposalRepository = new ProposalDatabaseRepository<>();
     private final ClientDatabaseRepository<Client> clientRepository = new ClientDatabaseRepository<>();
     private final DashboardController dashboardController = new DashboardController();
-
     private static final Logger log = LoggerFactory.getLogger(ProposalSearchController.class);
 
     /**
-     * Initializes all the necessary stuff
-     *
+     * Inicijalizira kontroler. Postavlja tvornice vrijednosti za stupce tablice
+     * i prilagođava UI ovisno o roli prijavljenog korisnika.
      */
     public void initialize() {
-        ideaTableColumn.setCellValueFactory(cellData ->
-                new SimpleStringProperty(cellData.getValue().getTitle()));
-        descriptionTableColumn.setCellValueFactory(cellData ->
-                new SimpleStringProperty(cellData.getValue().getDescription()));
-        statusTableColumn.setCellValueFactory(cellData ->
-                new SimpleStringProperty(cellData.getValue().getStatus().toString()));
+        ideaTableColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getTitle()));
+        descriptionTableColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDescription()));
+        statusTableColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getStatus().toString()));
 
         clientTableColumn.setCellValueFactory(cellData -> {
             Long clientId = cellData.getValue().getClientId();
@@ -81,27 +76,26 @@ public class ProposalSearchController {
             try {
                 client = clientRepository.findById(clientId);
             } catch (EmptyRepositoryResultException | SQLException e) {
-                log.error("Input error: {}", e.getMessage(), e);
+                log.error("Error fetching client name for proposal: {}", e.getMessage(), e);
             }
             return new SimpleStringProperty(client != null ? client.getName() : "Unknown Client");
-        }); 
+        });
 
         statusComboBox.setItems(FXCollections.observableArrayList("Pending", "Approved", "Rejected"));
 
-        boolean isAdmin = SessionManager.isAdmin();
-
-        if(!isAdmin)
-        {
+        if (!SessionManager.isAdmin()) {
             dashboardController.disableButton(approveButton);
             dashboardController.disableButton(rejectButton);
         }
-
     }
 
+    /**
+     * Filtrira prijedloge na temelju unesenih kriterija.
+     * Regularni korisnici vide samo svoje prijedloge, dok administratori vide sve.
+     */
     public void filterProposals() {
         Long currentUserId = SessionManager.getLoggedInUserId();
         boolean isAdmin = SessionManager.isAdmin();
-
         List<Proposal> proposalList = proposalRepository.findAll();
 
         if (!isAdmin) {
@@ -127,7 +121,6 @@ public class ProposalSearchController {
         String clientName = clientTextField.getText().trim();
         if (!clientName.isEmpty()) {
             List<Proposal> filteredProposals = new ArrayList<>();
-
             for (Proposal proposal : proposalList) {
                 try {
                     Client client = clientRepository.findById(proposal.getClientId());
@@ -138,21 +131,27 @@ public class ProposalSearchController {
                     throw new ProposalSearchException(e);
                 }
             }
-
             proposalList = filteredProposals;
         }
 
-        ObservableList<Proposal> proposalObservableList =
-                FXCollections.observableList(proposalList);
-
+        ObservableList<Proposal> proposalObservableList = FXCollections.observableList(proposalList);
         proposalTableView.setItems(proposalObservableList);
     }
 
+    /**
+     * Otvara ekran za uređivanje odabranog prijedloga.
+     * @throws SwitchingScreensExcpetion ako dođe do greške pri otvaranju ekrana.
+     */
     public void openProposalEditScreen() throws SwitchingScreensExcpetion {
         Proposal selectedProposal = proposalTableView.getSelectionModel().getSelectedItem();
         new MenuController().showProposalEditScreen(selectedProposal);
     }
 
+    /**
+     * Obrađuje brisanje odabranog prijedloga, uz korisničku potvrdu.
+     * @throws SQLException ako dođe do SQL greške.
+     * @throws EmptyRepositoryResultException ako prijedlog ne postoji.
+     */
     public void handleDeleteProposal() throws SQLException, EmptyRepositoryResultException {
         Proposal selectedProposal = proposalTableView.getSelectionModel().getSelectedItem();
 
@@ -163,7 +162,6 @@ public class ProposalSearchController {
 
         Long currentUserId = SessionManager.getLoggedInUserId();
         boolean isAdmin = SessionManager.isAdmin();
-
         if (!isAdmin && selectedProposal.getUserId() != currentUserId) {
             showError("Access Denied", "You can only delete your own proposals.");
             return;
@@ -180,21 +178,37 @@ public class ProposalSearchController {
         }
     }
 
+    /**
+     * Odobrava odabrani prijedlog.
+     * @throws SQLException ako dođe do SQL greške.
+     * @throws EmptyRepositoryResultException ako prijedlog ne postoji.
+     */
     public void handleApproveProposal() throws SQLException, EmptyRepositoryResultException {
         updateProposalStatus(enums.ProposalStatus.APPROVED);
     }
 
+    /**
+     * Odbija odabrani prijedlog.
+     * @throws SQLException ako dođe do SQL greške.
+     * @throws EmptyRepositoryResultException ako prijedlog ne postoji.
+     */
     public void handleRejectProposal() throws SQLException, EmptyRepositoryResultException {
         updateProposalStatus(enums.ProposalStatus.REJECTED);
     }
 
+    /**
+     * Privatna metoda koja ažurira status prijedloga na zadanu vrijednost.
+     * @param newStatus Novi status (APPROVED ili REJECTED).
+     * @throws SQLException ako dođe do SQL greške.
+     * @throws EmptyRepositoryResultException ako prijedlog ne postoji.
+     */
     private void updateProposalStatus(enums.ProposalStatus newStatus) throws SQLException, EmptyRepositoryResultException {
         Proposal selectedProposal = proposalTableView.getSelectionModel().getSelectedItem();
-
         if (selectedProposal == null) {
             showError("No Proposal Selected", "Please select a proposal.");
             return;
         }
+
         Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
         confirmation.setTitle("Confirm " + newStatus + " Action");
         confirmation.setHeaderText("Are you sure you want to " + newStatus.toString().toLowerCase() + " this proposal?");
@@ -204,12 +218,8 @@ public class ProposalSearchController {
                 + "Current Status: " + selectedProposal.getStatus());
 
         if (confirmation.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
-            if (newStatus == enums.ProposalStatus.APPROVED) {
-                selectedProposal.approveProposal();
-            } else if (newStatus == enums.ProposalStatus.REJECTED) {
-                selectedProposal.rejectProposal();
-            }
             proposalRepository.updateStatus(selectedProposal.getId(), newStatus);
+            filterProposals(); // Ponovno filtriraj kako bi se osvježio prikaz
             proposalTableView.refresh();
 
             Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
@@ -220,6 +230,11 @@ public class ProposalSearchController {
         }
     }
 
+    /**
+     * Prikazuje dijalog s porukom o grešci.
+     * @param title Naslov prozora.
+     * @param message Poruka koja se prikazuje.
+     */
     private void showError(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
@@ -227,5 +242,4 @@ public class ProposalSearchController {
         alert.setContentText(message);
         alert.showAndWait();
     }
-
 }

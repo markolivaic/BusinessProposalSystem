@@ -1,7 +1,12 @@
 package exception;
 
+/**
+ * Označena (checked) iznimka koja se baca kada operacija nad repozitorijem
+ * ne vrati očekivani rezultat (npr. pretraga po ID-ju ne pronađe entitet).
+ */
 public class EmptyRepositoryResultException extends Exception {
     public EmptyRepositoryResultException() {
+        super();
     }
 
     public EmptyRepositoryResultException(String message) {

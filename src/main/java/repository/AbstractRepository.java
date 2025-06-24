@@ -7,36 +7,47 @@ import model.Entitiy;
 import java.sql.SQLException;
 import java.util.List;
 
+/**
+ * Apstraktna generička klasa koja definira osnovni ugovor za sve repozitorije u aplikaciji.
+ * Svaki repozitorij koji radi s entitetima koji nasljeđuju {@link Entitiy} treba naslijediti ovu klasu.
+ *
+ * @param <T> Tip entiteta s kojim repozitorij radi (npr. Client, Proposal).
+ */
 public abstract class AbstractRepository<T extends Entitiy> {
         /**
-         * Finds an entity by its unique ID.
+         * Pronalazi entitet prema njegovom jedinstvenom ID-ju.
          *
-         * @param id The ID of the entity.
-         * @return The entity if found.
-         * @throws EmptyRepositoryResultException if no entity is found.
-         * @throws SQLException if a database error occurs.
+         * @param id ID entiteta koji se traži.
+         * @return Pronađeni entitet.
+         * @throws EmptyRepositoryResultException ako entitet s danim ID-jem nije pronađen.
+         * @throws SQLException ako dođe do greške prilikom pristupa bazi podataka.
+         * @throws RepositoryAccessException ako dođe do općenite greške pri pristupu repozitoriju.
          */
-        public abstract T findById(Long id) throws EmptyRepositoryResultException, SQLException;
+        public abstract T findById(Long id) throws EmptyRepositoryResultException, SQLException, RepositoryAccessException;
+
         /**
-         * Retrieves all entities from the repository.
+         * Dohvaća sve entitete iz repozitorija.
          *
-         * @return A list of all entities.
-         * @throws RepositoryAccessException if an error occurs during retrieval.
+         * @return Lista svih entiteta.
+         * @throws RepositoryAccessException ako dođe do greške prilikom dohvaćanja podataka.
          */
         public abstract List<T> findAll() throws RepositoryAccessException;
+
         /**
-         * Saves multiple entities to the repository.
+         * Sprema listu entiteta u repozitorij.
+         * Obično se koristi za batch operacije.
          *
-         * @param entities A list of entities to save.
-         * @throws RepositoryAccessException if saving fails.
-         * @throws SQLException if a database error occurs.
+         * @param entities Lista entiteta za spremanje.
+         * @throws RepositoryAccessException ako spremanje ne uspije.
+         * @throws SQLException ako dođe do greške prilikom pristupa bazi podataka.
          */
         public abstract void save(List<T> entities) throws RepositoryAccessException, SQLException;
+
         /**
-         * Saves a single entity to the repository.
+         * Sprema jedan entitet u repozitorij.
          *
-         * @param entity The entity to save.
-         * @throws RepositoryAccessException if saving fails.
+         * @param entity Entitet koji se sprema.
+         * @throws RepositoryAccessException ako spremanje ne uspije.
          */
         public abstract void save(T entity) throws RepositoryAccessException;
 }

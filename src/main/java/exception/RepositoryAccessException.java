@@ -1,7 +1,12 @@
 package exception;
 
+/**
+ * Neoznačena (unchecked) iznimka koja se baca kada dođe do općenite greške
+ * prilikom pristupa repozitoriju, najčešće vezane uz I/O operacije ili probleme s bazom podataka.
+ */
 public class RepositoryAccessException extends RuntimeException {
     public RepositoryAccessException() {
+        super();
     }
 
     public RepositoryAccessException(String message) {

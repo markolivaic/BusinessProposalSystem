@@ -8,33 +8,36 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Repozitorij za upravljanje zapisima o promjenama (audit log).
+ * Koristi sinkronizirane metode za siguran, konkurentan pristup binarnoj datoteci
+ * u kojoj se pohranjuju serijalizirani {@link AuditLog} objekti.
+ */
 public class AuditLogRepository {
     private static final String AUDIT_LOG_FILE = "dat/audit_log.dat";
     private static final Logger log = LoggerFactory.getLogger(AuditLogRepository.class);
 
-    // Zastavica koja, kao i kod profesora, osigurava da samo jedna nit pristupa resursu
     private static boolean loggedInProgress = false;
 
     /**
-     * Sinkronizirano zapisuje promjenu u datoteku. Ako je druga nit već u procesu
-     * pisanja, ova će pričekati svoj red.
+     * Sinkronizirano zapisuje jedan {@link AuditLog} zapis u binarnu datoteku.
+     * Ako je druga nit već u procesu pisanja, ova će pričekati koristeći wait/notify mehanizam.
+     *
      * @param auditLog Zapis koji se sprema.
      */
     public synchronized void logChange(AuditLog auditLog) {
-        // "Profesorski" mehanizam čekanja dok je resurs zauzet
         while (loggedInProgress) {
             try {
                 wait();
             } catch (InterruptedException e) {
                 log.error("Thread interrupted while waiting for logging access.", e);
-                Thread.currentThread().interrupt(); // Dobra praksa je ponovno postaviti interrupt status
+                Thread.currentThread().interrupt();
             }
         }
 
         loggedInProgress = true;
 
         try {
-            // Koristimo internu metodu za čitanje kako bismo izbjegli rekurzivnu sinkronizaciju i deadlock
             List<AuditLog> logs = readAuditLogsInternal();
             logs.add(auditLog);
 
@@ -44,15 +47,16 @@ public class AuditLogRepository {
                 log.error("Error writing audit log: {}", e.getMessage(), e);
             }
         } finally {
-            // Uvijek oslobađamo resurs i obavještavamo druge niti da mogu nastaviti
             loggedInProgress = false;
             notifyAll();
         }
     }
 
     /**
-     * Sinkronizirano čita sve zapise iz datoteke.
-     * @return Lista svih zapisa.
+     * Sinkronizirano čita sve zapise iz binarne datoteke.
+     * Ako je druga nit u procesu pisanja, ova će pričekati.
+     *
+     * @return Lista svih {@link AuditLog} zapisa.
      */
     public synchronized List<AuditLog> readAuditLogs() {
         // "Profesorski" mehanizam čekanja
@@ -77,7 +81,9 @@ public class AuditLogRepository {
 
     /**
      * Interna, nesinkronizirana metoda za čitanje koju pozivaju sinkronizirane metode.
-     * @return Lista zapisa.
+     * Čita listu {@link AuditLog} objekata iz datoteke.
+     *
+     * @return Lista zapisa ili prazna lista ako datoteka ne postoji, prazna je, ili dođe do greške.
      */
     private List<AuditLog> readAuditLogsInternal() {
         File file = new File(AUDIT_LOG_FILE);
@@ -88,13 +94,10 @@ public class AuditLogRepository {
         try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
             return (List<AuditLog>) in.readObject();
         } catch (EOFException e) {
-            // Ovo je očekivano ako je datoteka prazna, nije greška.
             return new ArrayList<>();
         } catch (IOException | ClassNotFoundException e) {
             log.error("Error reading audit log: {}", e.getMessage(), e);
             return new ArrayList<>();
         }
     }
-
-    // Metode logChangeAsync() i shutdown() su uklonjene jer više ne koristimo ExecutorService.
 }

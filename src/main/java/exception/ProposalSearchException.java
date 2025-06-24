@@ -1,7 +1,12 @@
 package exception;
 
-public class ProposalSearchException extends RuntimeException{
+/**
+ * Neoznačena (unchecked) iznimka koja se baca specifično tijekom
+ * procesa pretrage prijedloga, ako dođe do neočekivane greške.
+ */
+public class ProposalSearchException extends RuntimeException {
     public ProposalSearchException() {
+        super();
     }
 
     public ProposalSearchException(String message) {

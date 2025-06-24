@@ -9,13 +9,21 @@ import repository.UserRepository;
 import java.io.IOException;
 
 /**
- * This is the main class for launching the Business Proposal Management System.
- * It initializes the JavaFX application and sets up the login screen.
+ * Glavna ulazna točka za pokretanje JavaFX aplikacije "Business Proposal Management System".
+ * Inicijalizira aplikaciju, postavlja glavni prozor (Stage) i prikazuje početni ekran za prijavu.
  */
 public class BusinessProposalApplication extends Application {
 
     private static Stage mainStage;
 
+    /**
+     * Metoda koja se poziva pri pokretanju JavaFX aplikacije.
+     * Postavlja glavni prozor aplikacije (Stage), inicijalizira korisnike iz datoteke u bazu
+     * i prikazuje ekran za prijavu.
+     *
+     * @param stage Glavni prozor (Stage) koji automatski osigurava JavaFX platforma.
+     * @throws IOException Ako dođe do greške pri učitavanju FXML datoteke.
+     */
     @Override
     public void start(Stage stage) throws IOException {
         setMainStage(stage);
@@ -31,22 +39,28 @@ public class BusinessProposalApplication extends Application {
     }
 
     /**
-     * Starts the application.
+     * Glavna metoda koja pokreće JavaFX aplikaciju.
+     *
+     * @param args Argumenti komandne linije (ne koriste se).
      */
     public static void main(String[] args) {
         launch();
     }
 
     /**
-     * Returns the main stage of the application.
-     * @return  The main JavaFX stage.
+     * Vraća referencu na glavni prozor (Stage) aplikacije.
+     * Omogućuje drugim dijelovima aplikacije pristup i manipulaciju glavnim prozorom.
+     *
+     * @return Glavni JavaFX prozor (Stage).
      */
     public static Stage getMainStage() {
         return mainStage;
     }
+
     /**
-     * Sets the main stage of the application.
-     * @param stage The JavaFX stage to be set as the main stage.
+     * Postavlja referencu na glavni prozor aplikacije.
+     *
+     * @param stage Prozor (Stage) koji će biti postavljen kao glavni.
      */
     private static void setMainStage(Stage stage) {
         mainStage = stage;
