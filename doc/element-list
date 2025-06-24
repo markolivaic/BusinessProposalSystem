@@ -1,0 +1,9 @@
+module:hr.javafx.business.businessproposalsystem
+controller
+database
+enums
+exception
+hr.javafx.business.businessproposalsystem
+model
+repository
+session

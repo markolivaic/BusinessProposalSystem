@@ -4,7 +4,6 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import repository.AuditLogRepository;
 import repository.UserRepository;
 
 import java.io.IOException;
@@ -24,13 +23,11 @@ public class BusinessProposalApplication extends Application {
         UserRepository userRepository = new UserRepository();
         userRepository.importUsersFromFile();
 
-        FXMLLoader fxmlLoader = new FXMLLoader(BusinessProposalApplication.class.getResource("dashBoardScreen.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(BusinessProposalApplication.class.getResource("loginScreen.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 700, 400);
         stage.setTitle("Login!");
         stage.setScene(scene);
         stage.show();
-
-        stage.setOnCloseRequest(e -> AuditLogRepository.shutdown());
     }
 
     /**

@@ -6,7 +6,7 @@ public non-sealed class Client extends Entitiy{
     private String phone;
     private String company;
 
-    public Client(long id, String name, String email, String company, String phone) {
+    public Client(long id, String name, String email, String phone, String company) {
         super(id);
         this.name = name;
         this.email = email;
@@ -14,7 +14,7 @@ public non-sealed class Client extends Entitiy{
         this.company = company;
     }
 
-    public Client(String name, String email, String company, String phone) {
+    public Client(String name, String email, String phone, String company) {
         this.name = name;
         this.email = email;
         this.phone = phone;

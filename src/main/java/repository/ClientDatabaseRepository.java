@@ -23,8 +23,8 @@ public class ClientDatabaseRepository<T extends Client> extends AbstractReposito
     @Override
     public T findById(Long id) throws EmptyRepositoryResultException, SQLException {
         try (Connection connection = new DatabaseConnection().connectToDatabase();
-            PreparedStatement statement = connection.prepareStatement("SELECT id, name, email, phone, company FROM CLIENTS WHERE id = ?"))
-             {
+             PreparedStatement statement = connection.prepareStatement("SELECT id, name, email, phone, company FROM CLIENTS WHERE id = ?"))
+        {
             statement.setLong(1, id);
             ResultSet resultSet = statement.executeQuery();
 
@@ -89,6 +89,7 @@ public class ClientDatabaseRepository<T extends Client> extends AbstractReposito
     }
 
     private Long getNextAuditLogId() {
+        // Ovdje koristimo novu, sinkroniziranu metodu za čitanje
         List<AuditLog> logs = new AuditLogRepository().readAuditLogs();
         return logs.isEmpty() ? 1L : logs.get(logs.size() - 1).id() + 1;
     }
@@ -110,7 +111,9 @@ public class ClientDatabaseRepository<T extends Client> extends AbstractReposito
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
         );
 
-        new AuditLogRepository().logChange(logEntry);
+        // IZMJENA: Pozivamo logiranje u novoj, pozadinskoj niti da ne blokiramo UI.
+        AuditLogRepository auditLogRepository = new AuditLogRepository();
+        new Thread(() -> auditLogRepository.logChange(logEntry)).start();
     }
 
 
