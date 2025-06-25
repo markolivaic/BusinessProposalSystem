@@ -59,7 +59,6 @@ public class AuditLogRepository {
      * @return Lista svih {@link AuditLog} zapisa.
      */
     public synchronized List<AuditLog> readAuditLogs() {
-        // "Profesorski" mehanizam čekanja
         while (loggedInProgress) {
             try {
                 wait();

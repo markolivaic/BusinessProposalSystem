@@ -1,11 +1,13 @@
 package controller;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.util.Duration;
 import model.AuditLog;
 import repository.AuditLogRepository;
 
@@ -72,24 +74,21 @@ public class AuditLogController {
     }
 
     /**
-     * Učitava zapise iz audit log datoteke koristeći pozadinsku nit (Task).
-     * Time se sprječava blokiranje korisničkog sučelja (UI) tijekom I/O operacije.
-     * Po završetku, popunjava tablicu s učitanim podacima.
+     * Učitava zapise iz audit log datoteke koristeći {@link Timeline}.
+     * Akcija se pokreće s malim zakašnjenjem kako bi se osiguralo da je UI spreman.
+     * Budući da se izvršava na JavaFX Application Threadu, ovo rješenje je prikladno
+     * samo za brze I/O operacije koje neće blokirati korisničko sučelje.
      */
     private void loadAuditLogs() {
-        Task<List<AuditLog>> loadTask = new Task<>() {
-            @Override
-            protected List<AuditLog> call() {
-                return auditLogRepository.readAuditLogs();
-            }
-        };
-
-        loadTask.setOnSucceeded(event -> {
-            auditLogList.setAll(loadTask.getValue());
-            auditLogTable.setItems(auditLogList);
-        });
-
-        new Thread(loadTask).start();
+        Timeline timeline = new Timeline(
+                new KeyFrame(Duration.millis(100), event -> {
+                    List<AuditLog> logs = auditLogRepository.readAuditLogs();
+                    auditLogList.setAll(logs);
+                    auditLogTable.setItems(auditLogList);
+                })
+        );
+        timeline.setCycleCount(1);
+        timeline.play();
     }
 
     /**

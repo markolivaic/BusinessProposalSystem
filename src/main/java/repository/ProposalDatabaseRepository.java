@@ -143,7 +143,7 @@ public class ProposalDatabaseRepository<T extends Proposal> extends AbstractRepo
                 "ADD",
                 PROPOSAL,
                 "N/A",
-                entity.getTitle(), // Logira naslov umjesto statusa
+                entity.getTitle(),
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_PATTERN))
         );
 
