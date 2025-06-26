@@ -129,7 +129,7 @@ public class EditProposalController {
     /**
      * Pomoćna metoda za prikazivanje dijaloga.
      * @param type Tip alerta.
-     * @param title Naslov prozora.
+     * @param title Naslov prozora.s
      * @param header Tekst zaglavlja.
      * @param content Sadržaj poruke.
      */

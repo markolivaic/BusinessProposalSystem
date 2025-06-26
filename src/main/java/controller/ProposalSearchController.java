@@ -219,7 +219,7 @@ public class ProposalSearchController {
 
         if (confirmation.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
             proposalRepository.updateStatus(selectedProposal.getId(), newStatus);
-            filterProposals(); // Ponovno filtriraj kako bi se osvježio prikaz
+            filterProposals();
             proposalTableView.refresh();
 
             Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
